@@ -32,9 +32,9 @@ def label_trans(x):
     Args:
         x: each element in fix col value
     '''
-    if x == ' <=50K':
+    if x == ' <=50K' or x == '<=50K.':
         return '0'
-    if x == ' >50K':
+    if x == ' >50K' or x == ' >50K.':
         return '1'
     return 0
 
@@ -161,13 +161,13 @@ def output_file(df_in, out_file):
         fw.write(outline + '\n')
     fw.close()
 
-def ana_train_data(input_train_dat,
-                       input_test_data,
-                       output_train_file,
-                       output_test_file):
+def ana_train_data(input_train_data,
+                   input_test_data,
+                   output_train_file,
+                   output_test_file):
     '''
     '''
-    train_data_df, test_data_df = get_input(input_train_dat, input_test_data)
+    train_data_df, test_data_df = get_input(input_train_data, input_test_data)
     label_feature_str = 'income'
     process_label_feature(label_feature_str, train_data_df)
     process_label_feature(label_feature_str, test_data_df)
