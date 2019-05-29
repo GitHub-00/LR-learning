@@ -161,10 +161,59 @@ def output_file(df_in, out_file):
         fw.write(outline + '\n')
     fw.close()
 
+def add(str_one, str_two):
+    '''
+    Args:
+        str_one:"0,0,1,0"
+        str_two:'1,0,0,0'
+    Return:
+        str such as '0,0,1,0'
+    '''
+    list_one = str_one.split(',')
+    list_two = str_two.split(',')
+    list_one_len = len(list_one)
+    list_two_len = len(list_two)
+    return_list = [0] * (list_one_len * list_two_len)
+    try:
+        index_one = list_one.index['1']
+    except:
+        index_one = 0
+
+    try:
+        index_two = list_two.index['1']
+    except:
+        index_two = 0
+    return_list[index_one * list_two_len + index_two] = 1
+    return ','.join(str(ele) for ele in return_list)
+
+def combine_feature(feature_one, feature_two, new_feature, train_data_df, test_data_df, feature_num_dict):
+    '''
+    Args:
+        feature_one:
+        feature_two:
+        new_feature: combine feature name
+        train_data_df:
+        test_data_df:
+        feature_num_dict: ndim of every feature, key feature name value len of the dim
+    Return:
+        new_feature_num
+    '''
+    train_data_df[new_feature] = train_data_df.apply(lambda row:add(row[feature_one],row[feature_two]), axis=1)
+    test_data_df[new_feature] = test_data_df.apply(lambda row:add(row[feature_one],row[feature_two]), axis=1)
+    if feature_one not in feature_num_dict:
+        print('error')
+        sys.exit()
+    if feature_two not in feature_num_dict:
+        print('error')
+        sys.exit()
+    return feature_num_dict[feature_one] * feature_num_dict[feature_two]
+
 def ana_train_data(input_train_data,
                    input_test_data,
                    output_train_file,
-                   output_test_file):
+                   output_test_file,
+                   feature_num_file
+                   ):
     '''
     '''
     train_data_df, test_data_df = get_input(input_train_data, input_test_data)
@@ -174,17 +223,37 @@ def ana_train_data(input_train_data,
 
     dis_feature_list = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country']
     con_feature_list = ['age','education-num','captial-gain','captial-loss','hours-per-week']
+    index_list = ['age','workclass','education','education-num','marital-status','occupation','relationship','race'
+                  ,'sex','captial-gain','captial-loss','hours-per-week','native-country']
     dis_feature_num = 0
     con_feature_num = 0
+    feature_num_dict = {}
     for dis_feature in dis_feature_list:
-        dis_feature_num += process_dis_feature(dis_feature, train_data_df, test_data_df)
+        tmp_feature_num = process_dis_feature(dis_feature, train_data_df, test_data_df)
+        dis_feature_num += tmp_feature_num
+        feature_num_dict[dis_feature] = tmp_feature_num
     for con_feature in con_feature_list:
-        con_feature_num += process_con_feature(con_feature, train_data_df, test_data_df)
+        tmp_feature_num = process_con_feature(con_feature, train_data_df, test_data_df)
+        con_feature_num += tmp_feature_num
+        feature_num_dict[con_feature] = tmp_feature_num
+
+    new_feature_one = combine_feature('age','captial-gain','age_gain', train_data_df, test_data_df, feature_num_dict)
+    new_feature_two = combine_feature('captial-gain','captial-loss','gain_loss', train_data_df, test_data_df, feature_num_dict)
+    train_data_df = train_data_df.reindex(columns=index_list + ['age_gain','gain_loss','income'])
+    test_data_df = test_data_df.reindex(columns=index_list + ['age_gain','gain_loss','income'])
+    #print(new_feature)
+    #print(train_data_df['age'][:2])
+    #print(train_data_df['occupation'][:2])
+    #print(train_data_df['age_co'][:2])
+    #sys.exit()
 
     output_file(train_data_df, output_train_file)
     output_file(test_data_df, output_test_file)
+    fw = open(feature_num_file,'w+')
+    fw.write('feature_num=' + str(dis_feature_num + con_feature_num + new_feature_one + new_feature_two))
+    fw.close()
     #print(dis_feature_num)
     #print(con_feature_num)
 
 if __name__=='__main__':
-    ana_train_data('../data/train.txt','../data/test.txt','../data/train_file','../data/test_file')
+    ana_train_data('../data/train.txt','../data/test.txt','../data/train_file','../data/test_file','../data/feature_num')

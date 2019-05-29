@@ -4,15 +4,20 @@ import os
 import numpy as np
 from sklearn.externals import joblib
 import math
+sys.path.append('../')
+import util.get_feature_num  as GF
 
-def get_test_data(test_file):
+
+def get_test_data(test_file, feature_num_file):
     '''
     Args:
         test_file: file to check performace
+        feature_num_file: total feature number
     Retrun:
         two np array: test_feature, test_label
     '''
-    total_feature_num = 118
+    #total_feature_num = 118
+    total_feature_num = GF.get_feature_num(feature_num_file)
     test_label = np.genfromtxt(test_file, dtype=np.float32, delimiter=',', usecols=-1)
     feature_list = range(total_feature_num)
     test_feature = np.genfromtxt(test_file, dtype=np.float32, delimiter=',', usecols=feature_list)
@@ -77,7 +82,7 @@ def get_accuary(predict_list, test_label):
         predict_list: model predict score list
         test_label: label of test data
     '''
-    score_thr = 0.5
+    score_thr = 0.8
     right_num = 0
     for index in range(len(predict_list)):
         predict_score = predict_list[index]
@@ -105,15 +110,16 @@ def run_check_core(test_feature, test_label, model, score_func):
     get_auc(predict_list, test_label)
     get_accuary(predict_list, test_label)
 
-def run_chcek(test_file, lr_coef_file, lr_model_file):
+def run_chcek(test_file, lr_coef_file, lr_model_file, feature_num_file):
     '''
     Args:
         test_file: file to check performace
         lr_coef_file: w1, w2,...
         lr_model_file: dump file
+        feature_num_file: total feature number file
     '''
 
-    test_feature, test_label = get_test_data(test_file)
+    test_feature, test_label = get_test_data(test_file, feature_num_file)
     lr_coef = np.genfromtxt(lr_coef_file, dtype=np.float32, delimiter=',')
     lr_model = joblib.load(lr_model_file)
     run_check_core(test_feature, test_label, lr_model, predict_by_lr_model)
@@ -121,4 +127,4 @@ def run_chcek(test_file, lr_coef_file, lr_model_file):
 
 
 if __name__=='__main__':
-    run_chcek('../data/test_file','../data/lr_coef','../data/lr_model_file')
+    run_chcek('../data/test_file','../data/lr_coef','../data/lr_model_file','../data/feature_num')

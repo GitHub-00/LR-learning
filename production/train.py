@@ -5,15 +5,19 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegressionCV as LRCV
 from sklearn.externals import joblib
+sys.path.append('../')
+import util.get_feature_num as GF
 
-def train_lr_model(train_file, model_coef, model_file):
+
+def train_lr_model(train_file, model_coef, model_file, feature_num_file):
     '''
     Args:
         train_file: file for lr train
         model_coef: w1, w2,...
         model_file: model pkl
     '''
-    total_feature_num = 118
+    #total_feature_num = 118
+    total_feature_num = GF.get_feature_num(feature_num_file)
     train_label = np.genfromtxt(train_file, dtype=np.int32, delimiter=',', usecols=-1)
     feature_list = range(total_feature_num)
     train_feature = np.genfromtxt(train_file, dtype=np.int32, delimiter=',', usecols=feature_list)
@@ -36,6 +40,6 @@ def train_lr_model(train_file, model_coef, model_file):
 
 
 if __name__ == '__main__':
-    train_lr_model('../data/train_file','../data/lr_coef','../data/lr_model_file')
+    train_lr_model('../data/train_file','../data/lr_coef','../data/lr_model_file','../data/feature_num')
 
 
